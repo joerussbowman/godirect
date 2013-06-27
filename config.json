@@ -1,0 +1,20 @@
+{
+	"AdminHostName": "admin.godirect.org",
+	"DefaultRedirectHostName": "www.godirect.org",
+	"Hosts": {
+		"sample.com": {
+			"Proxy": "127.0.0.1",
+			"Redirects": {
+				"/testint": "/landing",
+				"/testext": "http://www.google.com"
+			}
+		},
+		"sample2.com": {
+			"Proxy": "127.0.0.1",
+			"Redirects": {
+				"/testint": "/landing",
+				"/testext": "http://www.google.com"
+			}
+		}
+	}	
+}
