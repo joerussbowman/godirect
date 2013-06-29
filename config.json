@@ -1,6 +1,5 @@
 {
 	"HttpPort": 8080,
-	"AdminHostName": "admin.godirect.org",
 	"DefaultRedirectHostName": "www.godirect.org",
 	"Hosts": {
 		"sample.com": {
