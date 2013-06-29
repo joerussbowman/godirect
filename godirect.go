@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
         "strings"
+        "regexp"
 )
 
 var config Config
@@ -26,6 +27,7 @@ type Host struct {
 }
 
 type Config struct {
+        HttpPort    int
 	AdminHostName string
         DefaultRedirectHostName string
 	Hosts         map[string]Host
@@ -57,7 +59,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
                 // this just checks to see if the configured redirect is
                 // absolute or not.
                 log.Println(redir)
-                if strings.HasPrefix("http://", redir) {
+                external, err := regexp.MatchString("^.*://*", redir)
+                if err != nil {
+                        log.Fatal(err)
+                }
+                if external {
                     log.Println("doing external redirect for", redir)
                     http.Redirect(w, r, redir, http.StatusFound)
                 } else {
@@ -85,7 +91,7 @@ func main() {
 
 	log.Println("Starting server")
         // TODO: https listener as well?
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%v", config.HttpPort), nil); err != nil {
 		log.Fatal(err)
 	}
 }

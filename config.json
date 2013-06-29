@@ -1,16 +1,17 @@
 {
+	"HttpPort": 8080,
 	"AdminHostName": "admin.godirect.org",
 	"DefaultRedirectHostName": "www.godirect.org",
 	"Hosts": {
 		"sample.com": {
-			"Proxy": "127.0.0.1",
+			"Proxy": "127.0.0.1:8081",
 			"Redirects": {
 				"/testint": "/landing",
 				"/testext": "http://www.google.com"
 			}
 		},
 		"sample2.com": {
-			"Proxy": "127.0.0.1",
+			"Proxy": "127.0.0.1:8081",
 			"Redirects": {
 				"/testint": "/landing",
 				"/testext": "http://www.google.com"
