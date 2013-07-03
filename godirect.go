@@ -95,7 +95,6 @@ func main() {
 	config = readConfig()
 	http.HandleFunc("/", handler)
 
-	// TODO: https listener as well?
 	go func() {
 		log.Println("Starting server")
 		if err := http.ListenAndServe(fmt.Sprintf(":%v", config.HttpPort), nil); err != nil {
