@@ -5,16 +5,16 @@ package main
 // TODO: app to manage config
 
 import (
-	"os"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"os"
 	"regexp"
 	"strings"
-	"net/url"
-	"net/http"
-	"io/ioutil"
-	"encoding/json"
-	"net/http/httputil"
 )
 
 var config Config
@@ -29,17 +29,17 @@ type Host struct {
 type Config struct {
 	CommandPort             int
 	HttpPort                int
-        HttpsPort               int
-        HttpsCertFile           string
-        HttpsKeyFile            string
+	HttpsPort               int
+	HttpsCertFile           string
+	HttpsKeyFile            string
 	DefaultRedirectHostName string
 	Hosts                   map[string]Host
 }
 
 func readConfig() (c Config) {
-    // reads config from a file named config.json in the same path as where
-    // the executable is called.
-    // TODO: make location of config and file name an optional parameter
+	// reads config from a file named config.json in the same path as where
+	// the executable is called.
+	// TODO: make location of config and file name an optional parameter
 	file, e := ioutil.ReadFile("./config.json")
 	if e != nil {
 		fmt.Printf("File error: %v\n", e)
@@ -97,18 +97,18 @@ func main() {
 
 	// TODO: https listener as well?
 	go func() {
-            log.Println("Starting server")
-            if err := http.ListenAndServe(fmt.Sprintf(":%v", config.HttpPort), nil); err != nil {
-		log.Fatal(err)
-            }
-        }()
-        if config.HttpsPort > 0 {
-            go func(){
-                log.Println("Starting TLS server")
-                if err := http.ListenAndServeTLS(fmt.Sprintf(":%v", config.HttpsPort), config.HttpsCertFile, config.HttpsKeyFile, nil); err != nil {
-                    log.Fatal(err)
-                }
-            }()
-        }
-        select {}
+		log.Println("Starting server")
+		if err := http.ListenAndServe(fmt.Sprintf(":%v", config.HttpPort), nil); err != nil {
+			log.Fatal(err)
+		}
+	}()
+	if config.HttpsPort > 0 {
+		go func() {
+			log.Println("Starting TLS server")
+			if err := http.ListenAndServeTLS(fmt.Sprintf(":%v", config.HttpsPort), config.HttpsCertFile, config.HttpsKeyFile, nil); err != nil {
+				log.Fatal(err)
+			}
+		}()
+	}
+	select {}
 }
