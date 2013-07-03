@@ -30,6 +30,7 @@ type Config struct {
 	CommandPort             int
 	HttpPort                int
 	HttpsPort               int
+	ConfigPort              int
 	HttpsCertFile           string
 	HttpsKeyFile            string
 	DefaultRedirectHostName string
@@ -94,13 +95,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	config = readConfig()
 	http.HandleFunc("/", handler)
-
+        // start the http server in a goroutine
 	go func() {
 		log.Println("Starting server")
 		if err := http.ListenAndServe(fmt.Sprintf(":%v", config.HttpPort), nil); err != nil {
 			log.Fatal(err)
 		}
 	}()
+        // if an https port is configured, start the https server
 	if config.HttpsPort > 0 {
 		go func() {
 			log.Println("Starting TLS server")
@@ -109,5 +111,16 @@ func main() {
 			}
 		}()
 	}
+        // http listener for config
+        go func() {
+            log.Println("Starting config manager")
+            configMux := http.NewServeMux()
+            if err := http.ListenAndServe(fmt.Sprintf(":%v", config.ConfigPort), configMux); err != nil {
+                    log.Fatal(err)
+            }
+        }()
+        // this select is required for the goroutines above, basically it's
+        // what keeps polling them to keep them running. This is how I figured
+        // out to run multple http(s) listeners
 	select {}
 }
