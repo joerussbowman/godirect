@@ -30,9 +30,11 @@ type Config struct {
 	CommandPort             int
 	HttpPort                int
 	HttpsPort               int
-	ConfigPort              int
 	HttpsCertFile           string
 	HttpsKeyFile            string
+	ConfigPort              int
+	ConfigCertFile          string
+	ConfigKeyFile           string
 	DefaultRedirectHostName string
 	Hosts                   map[string]Host
 }
@@ -75,7 +77,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, redir, http.StatusFound)
 			} else {
 				log.Println("doing internal redirect for", redir)
-				http.Redirect(w, r, fmt.Sprintf("http://%s%s", r.Host, redir), http.StatusFound)
+				http.Redirect(w, r, fmt.Sprintf("http://%s%s",
+					r.Host, redir), http.StatusFound)
 			}
 		} else {
 			u, err := url.Parse(fmt.Sprintf("http://%s", h.Proxy))
@@ -87,7 +90,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// this is the global redirect
-		http.Redirect(w, r, fmt.Sprintf("http://%v", config.DefaultRedirectHostName), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("http://%v",
+			config.DefaultRedirectHostName), http.StatusFound)
 	}
 
 }
@@ -95,32 +99,39 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	config = readConfig()
 	http.HandleFunc("/", handler)
-        // start the http server in a goroutine
+	// start the http server in a goroutine
 	go func() {
 		log.Println("Starting server")
-		if err := http.ListenAndServe(fmt.Sprintf(":%v", config.HttpPort), nil); err != nil {
+		if err := http.ListenAndServe(fmt.Sprintf(":%v",
+			config.HttpPort), nil); err != nil {
 			log.Fatal(err)
 		}
 	}()
-        // if an https port is configured, start the https server
+	// if an https port is configured, start the https server
 	if config.HttpsPort > 0 {
 		go func() {
 			log.Println("Starting TLS server")
-			if err := http.ListenAndServeTLS(fmt.Sprintf(":%v", config.HttpsPort), config.HttpsCertFile, config.HttpsKeyFile, nil); err != nil {
+			if err := http.ListenAndServeTLS(fmt.Sprintf(":%v",
+				config.HttpsPort), config.HttpsCertFile,
+				config.HttpsKeyFile, nil); err != nil {
 				log.Fatal(err)
 			}
 		}()
 	}
-        // http listener for config
-        go func() {
-            log.Println("Starting config manager")
-            configMux := http.NewServeMux()
-            if err := http.ListenAndServe(fmt.Sprintf(":%v", config.ConfigPort), configMux); err != nil {
-                    log.Fatal(err)
-            }
-        }()
-        // this select is required for the goroutines above, basically it's
-        // what keeps polling them to keep them running. This is how I figured
-        // out to run multple http(s) listeners
+	// http listener for config
+	if config.HttpsPort > 0 {
+		go func() {
+			log.Println("Starting config manager")
+			configMux := http.NewServeMux()
+			if err := http.ListenAndServeTLS(fmt.Sprintf(":%v",
+				config.ConfigPort), config.ConfigCertFile,
+				config.ConfigKeyFile, configMux); err != nil {
+				log.Fatal(err)
+			}
+		}()
+	}
+	// this select is required for the goroutines above, basically it's
+	// what keeps polling them to keep them running. This is how I figured
+	// out to run multple http(s) listeners
 	select {}
 }

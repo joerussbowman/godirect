@@ -1,9 +1,11 @@
 {
 	"HttpPort": 8080,
 	"HttpsPort": 8443,
-	"ConfigPort": 8000,
 	"HttpsCertFile": "cert.pem",
 	"HttpsKeyFile": "key.pem",
+	"ConfigPort": 8000,
+	"ConfigCertFile": "cert.pem",
+	"ConfigKeyFile": "key.pem",
 	"DefaultRedirectHostName": "www.godirect.org",
 	"Hosts": {
 		"sample.com": {
