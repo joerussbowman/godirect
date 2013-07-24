@@ -13,6 +13,9 @@ TODO:
  - finalize config structure for godirect engine
  - provide better support for request types other than GET.
    ie: a POST, regardless of path, should always proxy
+ - Add caching, basically if it can handle redirects, proxy and
+   caching I think it will be feature complete for putting in front
+   of dynamic sites like CMS systems. 
  - benchmarks to validate performance is acceptable
 
 This tool is to solve the case where organizations manage

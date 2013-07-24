@@ -57,6 +57,36 @@ func readConfig() (c Config) {
 
 }
 
+// got this from the golang group, used for the config
+// server to manage getting and setting config.
+type methodMux struct {
+        methods  map[string]func(http.ResponseWriter, *http.Request)
+        delegate http.Handler
+}
+
+func (mm *methodMux) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+        if f, ok := mm.methods[request.Method]; ok {
+                f(response, request)
+        } else {
+                mm.delegate.ServeHTTP(response, request)
+        }
+}
+/*
+http.Handle("/service/",&methodMux{
+                map[string]func(http.ResponseWriter,*http.Request) {
+                        "HEAD": queuesHEAD,
+                        "GET": queuesGET,
+                        "POST": queuesPOST,             
+                },
+                http.NotFoundHandler(),
+})
+*/
+
+func getConfig(w http.ResponseWriter, r *http.Request) {
+    c, _ := json.Marshal(config)
+    fmt.Fprintf(w,"%s",c)
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	host := strings.Split(r.Host, ":")[0]
 	// check the host name, if we don't have an entry in the
@@ -123,6 +153,7 @@ func main() {
 		go func() {
 			log.Println("Starting config manager")
 			configMux := http.NewServeMux()
+                        configMux.HandleFunc("/", getConfig)
 			if err := http.ListenAndServeTLS(fmt.Sprintf(":%v",
 				config.ConfigPort), config.ConfigCertFile,
 				config.ConfigKeyFile, configMux); err != nil {
